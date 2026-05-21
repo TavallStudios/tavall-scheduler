@@ -12,7 +12,7 @@ package com.tjxjnoobie.api.platform.global.utils.interfaces;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ScheduledFuture;
 
-public interface ICustomScheduler extends com.tjxjnoobie.api.dependency.IDependencyInjectableInterface {
+public interface ICustomScheduler extends org.tavall.dependency.IDependencyInjectableInterface {
 
 
 
