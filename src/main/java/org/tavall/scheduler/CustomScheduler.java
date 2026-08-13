@@ -15,8 +15,13 @@ import java.util.Set;
 import java.util.concurrent.*;
 
 /**
- * CustomScheduler Ã¢â‚¬â€œ TODO: implement class functionality
- * Auto-generated skeleton by MondayGPT-style template
+ * Default {@link ICustomScheduler} implementation backed by separate serialized and concurrent
+ * scheduled executors.
+ *
+ * <p>Non-async methods use a single daemon thread, providing a sync-like lane where scheduled
+ * tasks do not overlap each other. Async methods use a daemon scheduled thread pool sized from the
+ * available processors. Every returned future is tracked so it can later be cancelled or removed
+ * from scheduler bookkeeping.</p>
  *
  * @author TJ
  * @since 11/15/2025
@@ -48,51 +53,35 @@ public class CustomScheduler implements ICustomScheduler {
         MULTI.setRemoveOnCancelPolicy(true);
     }
 
-
-
-
-    //=========== DELAYED TASKS ============\\
-
-    /**
-     * Run multi-threaded task later
-     */
+    @Override
     public ScheduledFuture<?> runTaskLaterAsync(Runnable task, long delayMs) {
         ScheduledFuture<?> scheduledFuture = MULTI.schedule(task, delayMs, TimeUnit.MILLISECONDS);
         activeTasks.add(scheduledFuture);
         return scheduledFuture;
     }
 
-    /**
-     * Run single-threaded task later
-     */
+    @Override
     public ScheduledFuture<?> runTaskLater(Runnable task, long delayMs) {
         ScheduledFuture<?> scheduledFuture = SINGLE.schedule(task, delayMs, TimeUnit.MILLISECONDS);
         activeTasks.add(scheduledFuture);
         return scheduledFuture;
     }
 
+    @Override
     public ScheduledFuture<?> runTaskLaterAsync(Callable<?> task, long delayMs) {
         ScheduledFuture<?> scheduledFuture = MULTI.schedule(task, delayMs, TimeUnit.MILLISECONDS);
         activeTasks.add(scheduledFuture);
         return scheduledFuture;
     }
 
-    /**
-     * Run single-threaded task later
-     */
+    @Override
     public ScheduledFuture<?> runTaskLater(Callable<?> task, long delayMs) {
         ScheduledFuture<?> scheduledFuture = SINGLE.schedule(task, delayMs, TimeUnit.MILLISECONDS);
         activeTasks.add(scheduledFuture);
         return scheduledFuture;
     }
 
-    // ------------------------------------------------------------
-    // REPEATING TASKS
-    // ------------------------------------------------------------
-
-    /**
-     * Repeat async task
-     */
+    @Override
     public ScheduledFuture<?> runTaskRepeatingAsync(
             Runnable task, long delayMs, long periodMs) {
         ScheduledFuture<?> scheduledFuture = MULTI.scheduleAtFixedRate(task, delayMs, periodMs, TimeUnit.MILLISECONDS);
@@ -100,9 +89,7 @@ public class CustomScheduler implements ICustomScheduler {
         return scheduledFuture;
     }
 
-    /**
-     * Repeat sync-like task
-     */
+    @Override
     public ScheduledFuture<?> runTaskRepeating(
             Runnable task, long delayMs, long periodMs) {
         ScheduledFuture<?> scheduledFuture = SINGLE.scheduleAtFixedRate(task, delayMs, periodMs, TimeUnit.MILLISECONDS);
@@ -110,14 +97,14 @@ public class CustomScheduler implements ICustomScheduler {
         return scheduledFuture;
     }
 
-    //========== SHUTDOWN / CANCEL =========\\
-
+    @Override
     public void shutdown() {
         SINGLE.shutdownNow();
         MULTI.shutdownNow();
         activeTasks.clear();
     }
 
+    @Override
     public void shutdownGracefully(long timeoutMs) {
         SINGLE.shutdown();
         MULTI.shutdown();
@@ -135,6 +122,7 @@ public class CustomScheduler implements ICustomScheduler {
         }
     }
 
+    @Override
     public boolean cancelTask(ScheduledFuture<?> task) {
         if (task == null) return false;
         boolean cancelled = task.cancel(false);
@@ -142,6 +130,7 @@ public class CustomScheduler implements ICustomScheduler {
         return cancelled;
     }
 
+    @Override
     public void cancelAllTasks() {
         for (ScheduledFuture<?> task : activeTasks) {
             task.cancel(false);
@@ -149,7 +138,8 @@ public class CustomScheduler implements ICustomScheduler {
         activeTasks.clear();
     }
 
-    public void removeTask(ScheduledFuture<?> t) {
-        activeTasks.remove(t);
+    @Override
+    public void removeTask(ScheduledFuture<?> task) {
+        activeTasks.remove(task);
     }
 }
