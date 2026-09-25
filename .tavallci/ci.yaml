@@ -22,8 +22,13 @@ dependencies:
     role: SHARED_DEP
     selector: required-source
 
+artifacts:
+  - name: tavall-scheduler
+    path: build/tavall-ci-artifacts/tavall-scheduler.jar
+
 requiredChecks:
   - quality
+  - artifact
 
 checks:
   quality:
@@ -32,3 +37,8 @@ checks:
       - "clean"
       - "check"
       - "assemble"
+
+  artifact:
+    executor: gradle
+    tasks:
+      - tavallCiArtifact
